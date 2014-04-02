@@ -8,7 +8,12 @@ class imageGenerateImagick implements  Image{
     private $image;
 
     public function __construct(){
-        $this->image = new Imagick();
+        $options = func_get_args();
+        if(count($options)){
+            $this->image = new Imagick($options[0]);
+        } else {
+            $this->image = new Imagick();
+        }
 
     }
 
