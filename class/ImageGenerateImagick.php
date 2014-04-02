@@ -34,8 +34,6 @@ class imageGenerateImagick implements  Image{
      */
     function resize($width = 160, $height = 90){
 
-        // load an image
-        // get the current image dimensions
         $geo = $this->image->getImageGeometry();
 
         // crop the image

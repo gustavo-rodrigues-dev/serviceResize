@@ -7,6 +7,14 @@ include_once "Image.php";
 class imageGenerateGD implements  Image{
     private $image;
 
+    public function __construct(){
+        $options = func_get_args();
+        if(count($options)){
+            $this->open($options[0]);
+        }
+
+    }
+
     /**
      * @param $file
      * @param string $anchor
@@ -24,8 +32,9 @@ class imageGenerateGD implements  Image{
                 $this->image = imagecreatefromgif($imagePath);
                 break;
             case 'png':
-            default:
                 $this->image = imagecreatefrompng($imagePath);
+            default:
+                $this->image = imagecreatefromjpeg($imagePath);
         }
         imagealphablending($this->image, true);
         imagesavealpha($this->image, true);
@@ -48,28 +57,33 @@ class imageGenerateGD implements  Image{
             'height'    =>  imagesy($this->image)
         );
 
-        // crop the image
-        if(($geo['width']/$width) < ($geo['height']/$height)){
-            $ratio = $width / $geo['height'];
-            $newheight = $height;
-            $newwidth = $width * $ratio;
-            $writex = round(($width - $newwidth) / 2);
-            $writey = 0;
-            $newimg = imagecreatetruecolor($geo['width'],floor($height*$geo['width']/$width));
-            //$this->image->cropImage($geo['width'], floor($height*$geo['width']/$width), 0, (($geo['height']-($height*$geo['width']/$width))/2));
-            //imagecopyresampled($resize->source, $this->source, $thumb_X, $thumb_Y, 0, 0, $thumb_W, $thumb_H, $orig_W, $orig_H);
-        } else {
-            $ratio = $width / $geo['width'];
-            $newwidth = $width;
-            $newheight = $geo['height'] * $ratio;
-            $writex = 0;
-            $writey = round(($geo['height'] - $newheight) / 2);
-            $newimg = imagecreatetruecolor(ceil($width*$geo['height']/$height),$geo['height']);
-            //$this->image->cropImage(ceil($width*$geo['height']/$height), $geo['height'], (($geo['width']-($width*$geo['height']/$height))/2), 0);
+        $original_aspect = $geo['width'] / $geo['height'];
+        $thumb_aspect = $width / $height;
+
+        if ( $original_aspect >= $thumb_aspect )
+        {
+            // If image is wider than thumbnail (in aspect ratio sense)
+            $new_height = $height;
+            $new_width = $geo['width'] / ($geo['height'] / $height);
         }
-        imagecolorallocate($newimg,0,0,0);
-        imagecopyresized($newimg, $this->image, $writex, $writey, 0, 0, $newwidth, $newheight, $width, $height);
-        $this->image = $newimg;
+        else
+        {
+            // If the thumbnail is wider than the image
+            $new_width = $width;
+            $new_height = $geo['height'] / ($geo['width'] / $width);
+        }
+
+        $thumb = imagecreatetruecolor( $width, $height );
+
+        // Resize and crop
+        imagecopyresampled($thumb,
+            $this->image,
+            0 - ($new_width - $width) / 2, // Center the image horizontally
+            0 - ($new_height - $height) / 2, // Center the image vertically
+            0, 0,
+            $new_width, $new_height,
+            $geo['width'], $geo['height']);
+        $this->image = $thumb;
         return $this;
     }
 
@@ -77,7 +91,7 @@ class imageGenerateGD implements  Image{
      * @param $file
      * @param $quality
      */
-    function save($file, $quality){
+    function save($file, $quality = 90){
         imagejpeg($this->image,$file, intval($quality));
     }
 }
