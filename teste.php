@@ -6,8 +6,8 @@
  * Time: 9:42 PM
  */
 
-include_once "class/imageGenerateGD.php";
+include_once "class/ImageGenerate.php";
 
-$teste = new imageGenerateGD('image/origin/DarthVader.jpg');
-$teste->resize(160,160,'')
+$teste = new imageGenerate('image/origin/DarthVader.jpg');
+$teste->resize(160,160)
         ->save('image/destination/DarthVader.jpg');

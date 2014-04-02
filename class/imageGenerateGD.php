@@ -23,18 +23,18 @@ class imageGenerateGD implements  Image{
     function open($file, $anchor = ''){
         $imagePath = $anchor.$file;
         switch (pathinfo($imagePath)) {
-            case 'jpg':
-            case 'jpeg':
-            case 'pjpeg':
-                $this->image = imagecreatefromjpeg($imagePath);
-                break;
             case 'gif':
                 $this->image = imagecreatefromgif($imagePath);
                 break;
             case 'png':
                 $this->image = imagecreatefrompng($imagePath);
+                break;
+            case 'jpg':
+            case 'jpeg':
+            case 'pjpeg':
             default:
                 $this->image = imagecreatefromjpeg($imagePath);
+                break;
         }
         imagealphablending($this->image, true);
         imagesavealpha($this->image, true);
@@ -46,8 +46,9 @@ class imageGenerateGD implements  Image{
     /**
      * @param $width
      * @param $height
+     * @return $this
      */
-    function resize($width, $height){
+    function resize($width = 160, $height = 160){
 
 
         // load an image
@@ -89,9 +90,12 @@ class imageGenerateGD implements  Image{
 
     /**
      * @param $file
-     * @param $quality
+     * @param int $quality
+     * @return $this
      */
     function save($file, $quality = 90){
         imagejpeg($this->image,$file, intval($quality));
+        imagedestroy($this->image);
+        return $this;
     }
 }
