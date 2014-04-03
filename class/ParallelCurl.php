@@ -37,9 +37,10 @@ class ParallelCurl {
 
     public $max_requests;
     public $options;
-
     public $outstanding_requests;
     public $multi_handle;
+    private $returns = array();
+
 
     /**
      * @param int $in_max_requests
@@ -48,7 +49,7 @@ class ParallelCurl {
     public function __construct($in_max_requests = 10, $in_options = array()) {
         $this->max_requests = $in_max_requests;
         $this->options = $in_options;
-        
+
         $this->outstanding_requests = array();
         $this->multi_handle = curl_multi_init();
     }
@@ -117,6 +118,23 @@ class ParallelCurl {
     }
 
     /**
+     * @param mixed $returns
+     */
+    public function setReturns($returns)
+    {
+        $this->returns = $returns;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getReturns()
+    {
+        return $this->returns;
+    }
+
+
+    /**
      * You *MUST* call this function at the end of your script. It waits for any running requests
      * to complete, and calls their callback functions
      */
@@ -170,7 +188,7 @@ class ParallelCurl {
             $content = curl_multi_getcontent($ch);
             $callback = $request['callback'];
             $user_data = $request['user_data'];
-            
+            $callbacks = array_push($this->returns, $content);
             call_user_func($callback, $content, $url, $ch, $user_data);
             
             unset($this->outstanding_requests[$ch_array_key]);
@@ -185,10 +203,11 @@ class ParallelCurl {
     {
         while (1) {
             $this->checkForCompletedRequests();
+
             if (count($this->outstanding_requests)<$max)
             	break;
             
-            usleep(10000);
+            usleep(1000);
         }
     }
 

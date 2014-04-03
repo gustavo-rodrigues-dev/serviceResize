@@ -11,7 +11,7 @@ class ImageGenerate implements Image {
         $options = func_get_args();
 
         if(!isset($options[1])){
-            $options[1] = MODE_IMAGICK;
+            $options[1] = self::MODE_IMAGICK;
         }
 
         if($options[1] == self::MODE_IMAGICK && extension_loaded('imagick')){
