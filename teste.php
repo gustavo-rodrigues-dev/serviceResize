@@ -6,39 +6,34 @@
  * Time: 9:42 PM
  */
 
-require_once "class/ParallelCurl.php";
+require_once "class/RollingCurl.php";
 define ('URLPREFIX', 'http://127.0.0.1/processaImagem/services/resize.php');
 
-function on_request_done($content, $url, $ch, $search) {
-
-    $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    if ($httpcode !== 200) {
-        print "Fetch error $httpcode for '$url'\n";
-        return;
-    }
-
-
-    echo print_r($content);
-}
-echo "<pre>";
 $terms_list = scandir('image/origin');
 $terms_list = array_slice($terms_list,2,count($terms_list));
 
 
-$max_requests = 2;
+/*function request_callback($response, $info) {
+    // parse the page title out of the returned HTML
+    if (preg_match("~<title>(.*?)</title>~i", $response, $out)) {
+        $title = $out[1];
+    }
+    echo "<b>$title</b><br />";
+    print_r($info);
+    echo "<hr>";
+}*/
 
-$curl_options = array(
-    CURLOPT_SSL_VERIFYPEER => FALSE,
-    CURLOPT_SSL_VERIFYHOST => FALSE,
-    CURLOPT_USERAGENT, 'Parallel Curl test script',
-);
 
-$parallel_curl = new ParallelCurl($max_requests, $curl_options);
-
+//$rc = new RollingCurl("request_callback");
+$rc = new RollingCurl();
+$rc->window_size = 5;
 foreach ($terms_list as $terms) {
-    $search = '"'.$terms.' is a"';
     $search_url = URLPREFIX.'?file='.urlencode("../image/origin/".$terms);
-    $parallel_curl->startRequest($search_url, 'on_request_done', $search);
+    $request = new RollingCurlRequest($search_url);
+    $rc->add($request);
 }
-
-var_dump($parallel_curl->getReturns());
+if($rc->execute()){
+    foreach($rc->getReturns() as $key => $value){
+        echo $value['return']. '<br>';
+    }
+}

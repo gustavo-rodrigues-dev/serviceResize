@@ -20,14 +20,12 @@ class ImageGenerate implements Image {
             } else {
                 $this->image = new imageGenerateImagick();
             }
-            echo "IMAGICK";
         } else {
             if(count($options)){
                 $this->image = new imageGenerateGD($options[0]);
             } else {
                 $this->image = new imageGenerateGD();
             }
-            echo "GD";
         }
 
     }
